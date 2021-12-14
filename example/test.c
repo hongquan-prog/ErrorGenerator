@@ -1,5 +1,4 @@
-#include <stdbool.h>
-
+// generate begin
 static struct error_str_t
 {
 	bool exist;
@@ -23,7 +22,7 @@ void error_str_init()
 }
 
 // example 
-/*const char* error_to_str(err_t errno)
+const char* error_to_str(err_t errno)
 {
 	static bool initialized = false;
 	unsigned short error_code = ERR_GET_ERROR_INDEX(errno);
@@ -40,4 +39,9 @@ void error_str_init()
 	if(s_error_str_array[module_id].last_error < error_code)
 		return "Error code out of range";
 	return s_error_str_array[module_id].error_array[error_code];
-}*/
+}
+// generate end
+
+
+
+

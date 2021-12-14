@@ -23,8 +23,7 @@ std::string gernerateInitializeFunction(std::string func_name,
     }
     ret << "}\n\n";
 
-    ret << "// example \n";
-    ret << "/*const char* error_to_str(err_t errno)";
+    ret << "const char* error_to_str(err_t errno)";
     ret << "\n{";
 	ret << "\n\tstatic bool initialized = false;";
 	ret << "\n\tunsigned short error_code = ERR_GET_ERROR_INDEX(errno);";
@@ -41,7 +40,7 @@ std::string gernerateInitializeFunction(std::string func_name,
 	ret << "\n\tif(s_error_str_array[module_id].last_error < error_code)";
 	ret << "\n\t\treturn \"Error code out of range\";";
 	ret << "\n\treturn s_error_str_array[module_id].error_array[error_code];";
-    ret << "\n}*/";
+    ret << "\n}";
 
     return ret.str();
 }
@@ -60,6 +59,53 @@ std::string generateStructure(std::string array_name, std::string array_size)
     return ret.str();
 }
 
+void saveResult(std::string path, std::string output_begin, std::string output_end, std::string result)
+{
+    int step = 0;
+    std::ostringstream ret;
+    std::fstream file(path);
+    if (file.is_open())
+    {
+        if(!output_begin.empty() && !output_end.empty())
+        {
+            std::string line;
+            while(file.good())
+            {
+                std::getline(file, line);
+                switch(step)
+                {
+                    case 0:
+                        if(!line.compare(output_begin))
+                        {
+                            ret << line << std::endl;
+                            ret << result << std::endl;
+                            step = 1;
+                            break;
+                        }
+                        ret << line << std::endl;
+                        break;
+                    case 1:
+                        if(!line.compare(output_end))
+                        {
+                            ret << line << std::endl;
+                            step = 2;
+                        }
+                        break;
+                    default:
+                        ret << line << std::endl; 
+                        break; 
+                }
+            }
+            file.close();
+            file.open(path, std::ios::trunc | std::ios::out);
+            file << ret.str();
+        }
+        else
+            file << result;
+        file.close();
+    }
+}
+
 void manual()
 {
     std::cout << "Usage: error-generator [options=] file..." << std::endl;
@@ -69,7 +115,8 @@ void manual()
     std::cout << "    -i\t Input file path of enum " << std::endl;
     std::cout << "    -o\t Output file path of error code " << std::endl;
     std::cout << "example ./error-generator test.h test1.h -o=exp.c" << std::endl;
-    std::cout << "example ./error-generator test.h -b=\"//error code begin\" -e=\"//error code end\"" << std::endl;
+    std::cout << "example ./error-generator test.h -input-begin=\"//error code begin\" -input-end=\"//error code end\"" << std::endl;
+    std::cout << "example ./error-generator test.h -output-begin=\"// generate begin\" -output-end=\"// generate end\"" << std::endl;
 }
 
 int main(int argc, char *argv[])
@@ -80,27 +127,38 @@ int main(int argc, char *argv[])
     std::string enum_begin;
     // 指定文件中枚举量的结束位置
     std::string enum_end;
+    // 指定文件输出代码的开始位置
+    std::string output_begin;
+    // 指定文件输出代码的结束位置
+    std::string output_end;
+    // 枚举量结果
     std::list<EnumPrase::EnumInfo> enum_result;
 
     for (int i = 1; i < argc; i++)
     {
         std::string item = std::string(argv[i]);
-        std::string prefix = item.substr(0, (item.length() < 3) ? (item.length()) : (3));
-        std::string suffix = item.substr((item.length() <= 3) ? (item.length() - 1) : (3));
-        if (prefix.compare("-o=") == 0)
+        std::string::size_type index = item.find("=");
+        std::string prefix = (index != std::string::npos) ? (item.substr(0, index)) : (item);
+        std::string suffix = (index != std::string::npos) ? (item.substr(index + 1)) : ("");
+        if (prefix.compare("-o") == 0)
             output_file = suffix;
-        else if (prefix.compare("-b=") == 0)
-            enum_begin = suffix;
-        else if (prefix.compare("-e=") == 0)
-            enum_end = suffix;
-        else if (prefix.compare("-i=") == 0)
+        else if (prefix.compare("-i") == 0)
             input_file.push_back(suffix);
+        else if (prefix.compare("-input-begin") == 0)
+            enum_begin = suffix;
+        else if (prefix.compare("-input-end") == 0)
+            enum_end = suffix;
+        else if (prefix.compare("-output-begin") == 0)
+            output_begin = suffix;
+        else if (prefix.compare("-output-end") == 0)
+            output_end = suffix;
         else if (prefix.compare("-h") == 0)
         {
             manual();
             return 0;
         }
-        else input_file.push_back(argv[i]);
+        else 
+            input_file.push_back(argv[i]);
     }
     if (!input_file.size())
     {
@@ -134,16 +192,8 @@ int main(int argc, char *argv[])
     }
 
     EnumToArray error_str(enum_result);
-
-    std::ofstream output(output_file);
-    if (output.is_open())
-    {
-        output << "#include <stdbool.h>\n\n";
-        output << generateStructure("s_error_str_array", std::to_string(enum_result.size()));
-        output << error_str.result();
-        output << gernerateInitializeFunction("error_str_init", "s_error_str_array", enum_result);
-        output.close();
-    }
+    saveResult(output_file, output_begin, output_end, generateStructure("s_error_str_array", std::to_string(enum_result.size())) + \
+    error_str.result() + gernerateInitializeFunction("error_str_init", "s_error_str_array", enum_result));
     std::cout << "generate success!" << std::endl;
     return 0;
 }
