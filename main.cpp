@@ -98,7 +98,8 @@ void saveResult(std::string path, std::string output_begin, std::string output_e
             }
             file.close();
             file.open(path, std::ios::trunc | std::ios::out);
-            file << ret.str();
+            // 删除最后一个换行符号，否则每运行一次增加一行
+            file << ret.str().substr(0, ret.str().length() - 1);
         }
         else
             file << result;
