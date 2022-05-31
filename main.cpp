@@ -111,13 +111,16 @@ void manual()
 {
     std::cout << "Usage: error-generator [options=] file..." << std::endl;
     std::cout << "Options:" << std::endl;
-    std::cout << "    -b\t Start position of enum" << std::endl;
-    std::cout << "    -e\t End position of enum " << std::endl;
-    std::cout << "    -i\t Input file path of enum " << std::endl;
-    std::cout << "    -o\t Output file path of error code " << std::endl;
-    std::cout << "example ./error-generator test.h test1.h -o=exp.c" << std::endl;
-    std::cout << "example ./error-generator test.h -input-begin=\"//error code begin\" -input-end=\"//error code end\"" << std::endl;
-    std::cout << "example ./error-generator test.h -output-begin=\"// generate begin\" -output-end=\"// generate end\"" << std::endl;
+    std::cout << "    -input-begin   Start position of enum" << std::endl;
+    std::cout << "    -input-end     End position of enum " << std::endl;
+    std::cout << "    -output-begin  Start position of output" << std::endl;
+    std::cout << "    -output-end    End position of output " << std::endl;
+    std::cout << "    -i             Input file path of enum " << std::endl;
+    std::cout << "    -o             Output file path of error code " << std::endl;
+    std::cout << "example ./error-generator \"test.h\" \"test1.h\" -o=\"exp.c\"" << std::endl;
+    std::cout << "example ./error-generator \"test.h\" -input-begin=\"//error code begin\" -input-end=\"//error code end\"" << std::endl;
+    std::cout << "example ./error-generator \"test.h\" -output-begin=\"// generate begin\" -output-end=\"// generate end\"" << std::endl;
+    std::cout << "example ./error-generator -i=\"test.h\" -o=\"test.c\" -input-begin=\"//error code begin\" -input-end=\"//error code end\" -output-begin=\"// generate begin\" -output-end=\"// generate end\"" << std::endl;
 }
 
 int main(int argc, char *argv[])
