@@ -3,6 +3,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <vector>
 #include <list>
 
 class EnumPrase
@@ -23,6 +24,8 @@ protected:
     };
 
     std::string m_roi;
+    std::string array_prefix;
+    std::string array_suffix;
     std::list<EnumPrase::EnumInfo> m_result;
 
     std::list<std::string> split(std::string stream, std::string seperator);
@@ -37,6 +40,9 @@ public:
 
     EnumPrase(std::string path = std::string(), std::string begin = std::string(), std::string end = std::string());
     bool prase(std::string path, std::string begin = std::string(), std::string end = std::string());
+    bool prase(std::vector<std::string> path, std::string begin = std::string(), std::string end = std::string());
+    void setArrayNamePrefix(std::string prefix);
+    void setArrayNameSuffix(std::string suffix);
     std::list<EnumPrase::EnumInfo> result();
     virtual ~EnumPrase();
 };

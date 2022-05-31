@@ -26,21 +26,21 @@ std::string gernerateInitializeFunction(std::string func_name,
 
     ret << "const char* error_to_str(err_t errno)";
     ret << "\n{";
-	ret << "\n\tstatic bool initialized = false;";
-	ret << "\n\tunsigned short error_code = ERR_GET_ERROR_INDEX(errno);";
-	ret << "\n\tunsigned short module_id = ERR_GET_MODULE_ID(errno);";
-	ret << "\n\tif(!initialized)";
-	ret << "\n\t{";
-	ret << "\n\t\terror_str_init();";
-	ret << "\n\t\tinitialized = true;";
-	ret << "\n\t}";
-	ret << "\n\tif(errno > 0)";
-	ret << "\n\t\treturn \"Errno should less than 0\";";
-	ret << "\n\tif(!s_error_str_array[module_id].exist)";
-	ret << "\n\t\treturn \"Error code array isn't exist\";";
-	ret << "\n\tif(s_error_str_array[module_id].last_error < error_code)";
-	ret << "\n\t\treturn \"Error code out of range\";";
-	ret << "\n\treturn s_error_str_array[module_id].error_array[error_code];";
+    ret << "\n\tstatic bool initialized = false;";
+    ret << "\n\tunsigned short error_code = ERR_GET_ERROR_INDEX(errno);";
+    ret << "\n\tunsigned short module_id = ERR_GET_MODULE_ID(errno);";
+    ret << "\n\tif(!initialized)";
+    ret << "\n\t{";
+    ret << "\n\t\terror_str_init();";
+    ret << "\n\t\tinitialized = true;";
+    ret << "\n\t}";
+    ret << "\n\tif(errno > 0)";
+    ret << "\n\t\treturn \"Errno should less than 0\";";
+    ret << "\n\tif(!s_error_str_array[module_id].exist)";
+    ret << "\n\t\treturn \"Error code array isn't exist\";";
+    ret << "\n\tif(s_error_str_array[module_id].last_error < error_code)";
+    ret << "\n\t\treturn \"Error code out of range\";";
+    ret << "\n\treturn s_error_str_array[module_id].error_array[error_code];";
     ret << "\n}";
 
     return ret.str();
@@ -67,34 +67,34 @@ void saveResult(std::string path, std::string output_begin, std::string output_e
     std::fstream file(path);
     if (file.is_open())
     {
-        if(!output_begin.empty() && !output_end.empty())
+        if (!output_begin.empty() && !output_end.empty())
         {
             std::string line;
-            while(file.good())
+            while (file.good())
             {
                 std::getline(file, line);
-                switch(step)
+                switch (step)
                 {
-                    case 0:
-                        if(!line.compare(output_begin))
-                        {
-                            ret << line << std::endl;
-                            ret << result << std::endl;
-                            step = 1;
-                            break;
-                        }
+                case 0:
+                    if (!line.compare(output_begin))
+                    {
                         ret << line << std::endl;
+                        ret << result << std::endl;
+                        step = 1;
                         break;
-                    case 1:
-                        if(!line.compare(output_end))
-                        {
-                            ret << line << std::endl;
-                            step = 2;
-                        }
-                        break;
-                    default:
-                        ret << line << std::endl; 
-                        break; 
+                    }
+                    ret << line << std::endl;
+                    break;
+                case 1:
+                    if (!line.compare(output_end))
+                    {
+                        ret << line << std::endl;
+                        step = 2;
+                    }
+                    break;
+                default:
+                    ret << line << std::endl;
+                    break;
                 }
             }
             file.close();
@@ -126,6 +126,7 @@ void manual()
 
 int main(int argc, char *argv[])
 {
+    EnumPrase praser;
     CmdParamPraser cli(argc - 1, argv + 1);
 
     // 指定输入文件
@@ -143,7 +144,7 @@ int main(int argc, char *argv[])
     // 枚举量结果
     std::list<EnumPrase::EnumInfo> enum_info;
 
-    if(!std::string("-h").compare(argv[1]))
+    if (!std::string("-h").compare(argv[1]))
     {
         manual();
         return 0;
@@ -155,29 +156,21 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    for (std::vector<std::string>::iterator i = input_file.begin(); i != input_file.end(); i++)
+    try
     {
-        try
-        {
-            EnumPrase prase(*i, input_begin, input_end);
-            std::list<EnumPrase::EnumInfo> result = prase.result();
-            for (std::list<EnumPrase::EnumInfo>::iterator j = result.begin(); j != result.end(); j++)
-            {
-                (*j).name = std::string("s_") + (*j).typedef_name + std::string("_err_str");
-                (*j).typedef_name.clear();
-                enum_info.push_back(*j);
-            }
-        }
-        catch (std::invalid_argument& e)
-        {
-            std::cout << e.what() << std::endl;
-            return -1;
-        }
+        praser.setArrayNamePrefix("s_");
+        praser.setArrayNameSuffix("_str");
+        praser.prase(input_file, input_begin, input_end);
+        enum_info = praser.result();
+    }
+    catch (std::invalid_argument &e)
+    {
+        std::cout << e.what() << std::endl;
+        return -1;
     }
 
     EnumToArray error_str(enum_info);
-    saveResult(output_file, output_begin, output_end, generateStructure("s_error_str_array", std::to_string(enum_info.size())) + \
-    error_str.result() + gernerateInitializeFunction("error_str_init", "s_error_str_array", enum_info));
+    saveResult(output_file, output_begin, output_end, generateStructure("s_error_str_array", std::to_string(enum_info.size())) + error_str.result() + gernerateInitializeFunction("error_str_init", "s_error_str_array", enum_info));
     std::cout << "generate success!" << std::endl;
     return 0;
 }

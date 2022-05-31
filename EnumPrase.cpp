@@ -1,9 +1,19 @@
 #include "EnumPrase.h"
 #include <iostream>
 
-EnumPrase::EnumPrase(std::string path, std::string begin,  std::string end)
+EnumPrase::EnumPrase(std::string path, std::string begin, std::string end)
 {
-    prase(path, begin, end);
+    if(!path.empty())
+        prase(path, begin, end);
+}
+
+void EnumPrase::setArrayNamePrefix(std::string prefix)
+{
+    array_prefix = prefix;
+}
+void EnumPrase::setArrayNameSuffix(std::string suffix)
+{
+    array_suffix = suffix;
 }
 
 bool EnumPrase::findNoteNoSpace(std::string stream, std::string note)
@@ -59,7 +69,7 @@ bool EnumPrase::getROI(std::string path, std::string begin, std::string end)
 void EnumPrase::frontTrimed(std::string &str, std::string delem)
 {
     std::string::size_type pos = str.find_first_not_of(delem, 0);
-    if(pos != std::string::npos)
+    if (pos != std::string::npos)
     {
         str.erase(0, pos);
     }
@@ -121,7 +131,7 @@ std::list<std::string> EnumPrase::split(std::string stream, std::string seperato
                 ret.push_back(item);
                 stream.erase(0, pos_comma + 1);
             }
-            else if(!stream.empty())
+            else if (!stream.empty())
                 ret.push_back(stream);
         } while (pos_comma != std::string::npos);
     }
@@ -138,7 +148,6 @@ bool EnumPrase::praseROI(std::string stream)
     std::string::size_type pos_semicolon;
 
     removeNote(stream);
-    m_result.clear();
     while (ret)
     {
         ret = ret && ((pos_enum = stream.find("enum")) != std::string::npos);
@@ -154,6 +163,19 @@ bool EnumPrase::praseROI(std::string stream)
             info.typedef_name = stream.substr(pos_right_brace + sizeof('}'), pos_semicolon - pos_right_brace - sizeof('}'));
             trimed(info.name, " \r\n\t");
             trimed(info.typedef_name, " \r\n\t");
+            if (!info.name.empty())
+            {
+                info.name = array_prefix + info.name + array_suffix;
+            }
+            else if(!info.typedef_name.empty())
+            {
+                info.name = array_prefix + info.typedef_name + array_suffix;
+            }
+            else
+            {
+                throw std::invalid_argument("fatal error: enum type name is empty!");
+            }
+            
             stream.erase(0, pos_semicolon + 1);
             info.member = split(member, ",");
             m_result.push_back(info);
@@ -162,16 +184,26 @@ bool EnumPrase::praseROI(std::string stream)
     return ret;
 }
 
-bool EnumPrase::prase(std::string path, std::string begin, std::string end )
+bool EnumPrase::prase(std::string path, std::string begin, std::string end)
 {
-    bool ret = getROI(path, begin, end);
-    if(!ret)
+    bool ret = false;
+
+    m_result.clear();
+    ret = getROI(path, begin, end) && praseROI(m_roi);
+
+    return ret;
+}
+
+bool EnumPrase::prase(std::vector<std::string> path, std::string begin, std::string end)
+{
+    bool ret = true;
+
+    m_result.clear();
+    for (std::vector<std::string>::iterator i = path.begin(); i != path.end() && ret; i++)
     {
-        std::cout << "fatal error: file open filed!" << std::endl;
-        std::cout << "file path:" << path << std::endl;
+        ret = getROI(*i, begin, end) && praseROI(m_roi);
     }
-    else
-        ret = praseROI(m_roi);
+
     return ret;
 }
 
