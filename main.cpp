@@ -1,4 +1,5 @@
 
+#include "CmdParamPraser.h"
 #include "EnumPrase.h"
 #include "EnumToArray.h"
 #include <vector>
@@ -125,79 +126,58 @@ void manual()
 
 int main(int argc, char *argv[])
 {
-    std::vector<std::string> input_file;
-    std::string output_file("output.c");
-    // 指定文件中枚举量的开始位置
-    std::string enum_begin;
-    // 指定文件中枚举量的结束位置
-    std::string enum_end;
-    // 指定文件输出代码的开始位置
-    std::string output_begin;
-    // 指定文件输出代码的结束位置
-    std::string output_end;
-    // 枚举量结果
-    std::list<EnumPrase::EnumInfo> enum_result;
+    CmdParamPraser cli(argc - 1, argv + 1);
 
-    for (int i = 1; i < argc; i++)
+    // 指定输入文件
+    std::vector<std::string> input_file = cli.readArguments("-i");
+    // 指定输出文件
+    std::string output_file = cli.readArgument("-o");
+    // 指定文件中枚举量的开始位置
+    std::string input_begin = cli.readArgument("-input-begin");
+    // 指定文件中枚举量的结束位置
+    std::string input_end = cli.readArgument("-input-end");
+    // 指定文件输出代码的开始位置
+    std::string output_begin = cli.readArgument("-output-begin");
+    // 指定文件输出代码的结束位置
+    std::string output_end = cli.readArgument("-output-end");
+    // 枚举量结果
+    std::list<EnumPrase::EnumInfo> enum_info;
+
+    if(!std::string("-h").compare(argv[1]))
     {
-        std::string item = std::string(argv[i]);
-        std::string::size_type index = item.find("=");
-        std::string prefix = (index != std::string::npos) ? (item.substr(0, index)) : (item);
-        std::string suffix = (index != std::string::npos) ? (item.substr(index + 1)) : ("");
-        if (prefix.compare("-o") == 0)
-            output_file = suffix;
-        else if (prefix.compare("-i") == 0)
-            input_file.push_back(suffix);
-        else if (prefix.compare("-input-begin") == 0)
-            enum_begin = suffix;
-        else if (prefix.compare("-input-end") == 0)
-            enum_end = suffix;
-        else if (prefix.compare("-output-begin") == 0)
-            output_begin = suffix;
-        else if (prefix.compare("-output-end") == 0)
-            output_end = suffix;
-        else if (prefix.compare("-h") == 0)
-        {
-            manual();
-            return 0;
-        }
-        else 
-            input_file.push_back(argv[i]);
+        manual();
+        return 0;
     }
+
     if (!input_file.size())
     {
         std::cout << "fatal error: no input files" << std::endl;
         return -1;
     }
-    else
-    {
-        for (std::vector<std::string>::iterator i = input_file.begin(); i != input_file.end(); i++)
-        {
-            std::ifstream file(*i);
-            if (!file.is_open())
-            {
-                std::cout << "fatal error: file open filed!" << std::endl;
-                std::cout << "file path:" << *i << std::endl;
-                return -2;
-            }
-        }
-    }
 
     for (std::vector<std::string>::iterator i = input_file.begin(); i != input_file.end(); i++)
     {
-        EnumPrase prase(*i, enum_begin, enum_end);
-        std::list<EnumPrase::EnumInfo> result = prase.result();
-        for (std::list<EnumPrase::EnumInfo>::iterator j = result.begin(); j != result.end(); j++)
+        try
         {
-            (*j).name = std::string("s_") + (*j).typedef_name + std::string("_err_str");
-            (*j).typedef_name.clear();
-            enum_result.push_back(*j);
+            EnumPrase prase(*i, input_begin, input_end);
+            std::list<EnumPrase::EnumInfo> result = prase.result();
+            for (std::list<EnumPrase::EnumInfo>::iterator j = result.begin(); j != result.end(); j++)
+            {
+                (*j).name = std::string("s_") + (*j).typedef_name + std::string("_err_str");
+                (*j).typedef_name.clear();
+                enum_info.push_back(*j);
+            }
+        }
+        catch (std::invalid_argument& e)
+        {
+            std::cout << e.what() << std::endl;
+            return -1;
         }
     }
 
-    EnumToArray error_str(enum_result);
-    saveResult(output_file, output_begin, output_end, generateStructure("s_error_str_array", std::to_string(enum_result.size())) + \
-    error_str.result() + gernerateInitializeFunction("error_str_init", "s_error_str_array", enum_result));
+    EnumToArray error_str(enum_info);
+    saveResult(output_file, output_begin, output_end, generateStructure("s_error_str_array", std::to_string(enum_info.size())) + \
+    error_str.result() + gernerateInitializeFunction("error_str_init", "s_error_str_array", enum_info));
     std::cout << "generate success!" << std::endl;
     return 0;
 }

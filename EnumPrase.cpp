@@ -1,4 +1,5 @@
 #include "EnumPrase.h"
+#include <iostream>
 
 EnumPrase::EnumPrase(std::string path, std::string begin,  std::string end)
 {
@@ -28,8 +29,10 @@ bool EnumPrase::getROI(std::string path, std::string begin, std::string end)
     std::ifstream file(path);
     EnumPos find_position = (begin.empty()) ? (ENUM_END) : (ENUM_BEGIN);
 
-    if (!file.good())
-        ret = false;
+    if (!file.is_open())
+    {
+        throw std::invalid_argument("fatal error: " + path + " open filed!");
+    }
     while (file.good())
     {
         std::string line;
