@@ -141,7 +141,7 @@ std::list<std::string> EnumPrase::split(std::string stream, std::string seperato
 
 bool EnumPrase::praseROI(std::string stream)
 {
-    int ret = !stream.empty();
+    bool ret = !stream.empty();
     std::string::size_type pos_enum;
     std::string::size_type pos_left_brace;
     std::string::size_type pos_right_brace;
@@ -181,7 +181,8 @@ bool EnumPrase::praseROI(std::string stream)
             m_result.push_back(info);
         }
     }
-    return ret;
+    
+    return true;
 }
 
 bool EnumPrase::prase(std::string path, std::string begin, std::string end)
