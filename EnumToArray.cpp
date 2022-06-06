@@ -8,18 +8,23 @@ EnumToArray::EnumToArray(const std::list<EnumPrase::EnumInfo>& info)
 bool EnumToArray::convert(const std::list<EnumPrase::EnumInfo>& info)
 {
     bool ret = info.size();
+
     m_output.clear();
     m_output.str("");
     std::list<EnumPrase::EnumInfo>::const_iterator p = info.begin();
+
     for (; ret && p != info.end(); p++)
     {
         m_output << "static const char* ";
+
         if((*p).name.empty())
             m_output << (*p).typedef_name;
         else    
             m_output << (*p).name;
+
         m_output << "[] = {";
         std::list<std::string>::const_iterator q = (*p).member.begin();
+
         for(; q != (*p).member.end(); q++)
         {
             m_output << "\n\t\"";

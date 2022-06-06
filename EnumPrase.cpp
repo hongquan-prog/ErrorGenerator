@@ -43,6 +43,8 @@ bool EnumPrase::getROI(std::string path, std::string begin, std::string end)
     {
         throw std::invalid_argument("fatal error: " + path + " open filed!");
     }
+
+    m_roi.clear();
     while (file.good())
     {
         std::string line;
@@ -181,7 +183,7 @@ bool EnumPrase::praseROI(std::string stream)
             m_result.push_back(info);
         }
     }
-    
+
     return true;
 }
 
