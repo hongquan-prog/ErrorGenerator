@@ -3,18 +3,6 @@
 
 #include "err_def.h"
 
-#define LOG(errno, info)                                              \
-  {                                                                   \
-    const char *str = error_to_str(errno);                            \
-    printf("[%s:%d] %s: %s", __FILE__, __LINE__, str, info); \
-  } 
-
-typedef enum
-{
-  EXCEPTION_MODULE,
-  CHARGE_MODULE,
-} module_enum_t;
-
 // error code begin
 
 typedef enum
@@ -42,7 +30,5 @@ typedef enum
 } charge_status_def;
 
 // error code end
-
-const char *error_to_str(err_t errno);
 
 #endif
