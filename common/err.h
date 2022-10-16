@@ -39,7 +39,7 @@ typedef enum
   EXCEPTION_MODULE
 } module_enum_t;
 
-// error code begin
+//error-code-begin
 
 typedef enum
 {
@@ -51,7 +51,7 @@ typedef enum
   InvalidOperation
 } exception_def;
 
-// error code end
+//error-code-end
 
 const char *error_to_str(err_t errno);
 

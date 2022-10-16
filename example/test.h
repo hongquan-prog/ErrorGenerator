@@ -3,7 +3,7 @@
 
 #include "err_def.h"
 
-// error code begin
+//error-code-begin
 
 typedef enum
 {
@@ -29,6 +29,6 @@ typedef enum
   CardReaderExamineFailed,
 } charge_status_def;
 
-// error code end
+//error-code-end
 
 #endif

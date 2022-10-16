@@ -1,5 +1,5 @@
 
-// generate begin
+//generate-begin
 static struct error_str_t
 {
 	bool exist;
@@ -58,4 +58,4 @@ const char* error_to_str(err_t errno)
 		return "Error code out of range";
 	return s_error_str_array[module_id].error_array[error_code];
 }
-// generate end
+//generate-end
